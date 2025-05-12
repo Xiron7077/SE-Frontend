@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { motion } from "framer-motion";
 
 export default function SignUpPage() {
     const [username, setUsername] = useState("");
@@ -19,7 +20,20 @@ export default function SignUpPage() {
     return (
         <div className="min-h-screen flex items-center justify-center bg-white">
             {/* Left: Login Form */}
-            <div className="w-[40%] px-32 flex flex-col gap-8 z-10">
+            <div className="w-[40%] px-24 flex flex-col gap-8 z-10">
+                <div className="mb-10">
+                    <motion.button
+                        whileHover={{
+                            scale: 1.1
+                        }}
+                        whileTap={{
+                            scale: 0.9
+                        }}
+                        onClick={() => router.push('/')}
+                    >   
+                        <Image src="/back.png" alt="Back" width={60} height={60} className="hover:cursor-pointer"/>
+                    </motion.button>
+                </div>
                 <h1 className="text-4xl font-bold text-black mb-2">Create your account</h1>
                 <p className="text-gray-400 mb-6">Join <span onClick={() => router.push('/')} className="text-green-500 font-semibold hover:cursor-pointer">ShipNoxy</span> and start shipping smarter, faster, and easier.</p>
                 <form className="flex flex-col gap-4" onSubmit={handleSubmit}>

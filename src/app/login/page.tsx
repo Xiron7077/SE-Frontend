@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { login } from "@/components/lib/auth-helper";
+import { motion } from "framer-motion";
 
 export default function LoginPage() {
     const [email, setEmail] = useState("");
@@ -19,7 +20,20 @@ export default function LoginPage() {
     return (
         <div className="min-h-screen flex items-center justify-center bg-white">
             {/* Left: Login Form */}
-            <div className="w-[40%] px-32 flex flex-col gap-8 z-10">
+            <div className="w-[40%] px-28 flex flex-col gap-8 z-10">
+                <div className="mb-10">
+                    <motion.button
+                        whileHover={{
+                            scale: 1.1
+                        }}
+                        whileTap={{
+                            scale: 0.9
+                        }}
+                        onClick={() => router.push('/')}
+                    >   
+                        <Image src="/back.png" alt="Back" width={60} height={60} className="hover:cursor-pointer"/>
+                    </motion.button>
+                </div>
                 <h1 className="text-4xl font-bold text-black mb-2">Welcome back!</h1>
                 <p className="text-gray-500 mb-6">Simplify your workflow and boost your productivity with <span onClick={() => router.push('/')} className="text-green-500 font-semibold hover:cursor-pointer">ShipNoxy</span>. Get started for free.</p>
                 <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
