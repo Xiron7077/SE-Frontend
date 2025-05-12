@@ -33,7 +33,7 @@ export default function Home() {
           <p>Revolutionize your shipping with drone-powered deliveries that reach your doorstep in record time.</p>
         </motion.div>
         <motion.a
-          href="/dashboard"
+          href="/login"
           initial={{
             opacity: 0,
             z: -10
