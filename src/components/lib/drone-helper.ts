@@ -13,16 +13,6 @@ async function makeRequest(method: 'get' | 'post', endpoint: string, data?: any)
     }
 }
 
-// Drone Registration
-export async function registerDrone(endpoint: string, uav_id: string) {
-    return makeRequest('post', 'register', { endpoint, uav_id });
-}
-
-// Telemetry Updates
-export async function sendTelemetry(id: string, telemetryData: TelemetryDto) {
-    return makeRequest('post', `telemetry/${id}`, telemetryData);
-}
-
 // Get All Drones
 export async function fetchAllDrones() {
     return makeRequest('get', '');
@@ -44,46 +34,18 @@ export async function uploadMission(id: string, missionData: MissionUploadDto) {
 }
 
 // Send Command to Drone
-export async function sendCommand(id: string, commandType: CommandType) {
+export async function sendCommand(id: string, commandType: string) {
     return makeRequest('post', `${id}/command`, { command_type: commandType });
 }
 
-// Type definitions that match your DTOs
-interface LandingZoneDto {
+
+export interface CommandDto {
     lat: number;
     lon: number;
     alt: number;
 }
 
-interface TelemetryDto {
-    uav_id: string;
-    location: LandingZoneDto;
-    attitude: {
-        roll: number;
-        pitch: number;
-        yaw: number;
-    };
-    mission_status: {
-        status: string;
-        code: number;
-    };
-    script_message: string;
-    mav_message: string;
-}
-
-interface CommandDto {
-    lat: number;
-    lon: number;
-    alt: number;
-}
-
-interface MissionResponseDto {
-    commands: CommandDto[];
-    dropoff_mission_index: number;
-    pickup_mission_index: number;
-}
-
-interface MissionUploadDto {
+export interface MissionUploadDto {
     dropoff_mission_index: number;
     pickup_mission_index: number;
     waypoints: CommandDto[];

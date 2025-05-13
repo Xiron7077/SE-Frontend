@@ -5,6 +5,8 @@ import { useState, useEffect } from "react";
 import { FiBell, FiSearch, FiSettings, FiMessageSquare, FiMap, FiBox, FiPackage, FiHome } from "react-icons/fi";
 import { motion } from "framer-motion";
 import dynamic from 'next/dynamic';
+import OrderModal from "@/components/ui/order-modal";
+import { fetchAvailableDrones, uploadMission, CommandDto } from "@/components/lib/drone-helper";
 
 const green = "#37A94C";
 
@@ -20,32 +22,22 @@ const navItems = [
 const Map = dynamic(() => import('@/components/ui/map'), { ssr: false });
 
 type ApiResponse = {
-    latitude: number;
-    longitude: number;
+    source: { latitude: number; longitude: number };
+    destination: { latitude: number; longitude: number };
 };
 
 export default function DashboardPage() {
-    const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
-    const [error, setError] = useState<string | null>(null);
+    const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
 
-    useEffect(() => {
-        async function fetchCoords() {
-            try {
-                // const res = await fetch('http://192.168.8.130:3000/api/location');
-                // if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                // const data: ApiResponse = await res.json();
-                // setCoords({ lat: data.latitude, lng: data.longitude });
-                setCoords({ lat: 1, lng: 1 });
-            } catch (err: any) {
-                console.error(err);
-                setError(err.message);
-            }
-        }
-        fetchCoords();
-    }, []);
+    const source: [number, number] = [34.0693159, 72.6445735];
+    const destination: [number, number] = [34.0710445, 72.6413709];
+
+    const handleCreateOrder = async (orderData: any) => {
+        console.log('New order created:', orderData);
+    };
 
     return (
-        <div className={`min-h-screen w-full flex bg-[#262626]`}>
+        <div className={`min-h-screen w-full flex bg-[#262626] transition-all duration-300 ${isOrderModalOpen ? 'backdrop-blur-sm' : ''}`}>
             {/* Sidebar */}
             <aside className="w-64 m-6 flex flex-col justify-between">
                 <div>
@@ -99,6 +91,7 @@ export default function DashboardPage() {
                             whileTap={{
                                 scale: 0.9
                             }}
+                            onClick={() => setIsOrderModalOpen(true)}
                             className="ml-4 px-6 py-2 rounded-full bg-green-500 text-white font-semibold hover:cursor-pointer transition-colors"
                         >
                             Create new order
@@ -106,149 +99,82 @@ export default function DashboardPage() {
                     </div>
                 </div>
                 {/* Cards Grid */}
-                <div className="grid grid-cols-4 gap-6">
-                    {/* This month order */}
-                    <div className="col-span-1 bg-white rounded-2xl p-6 shadow flex flex-col">
-                        <div className="flex items-center gap-2 mb-2">
-                            <span className="bg-green-100 text-green-700 p-2 rounded-full"><FiBox /></span>
-                            <span className="font-bold text-lg text-black">This month order</span>
-                        </div>
-                        <div className="flex items-end gap-2">
-                            <span className="text-3xl font-bold text-black">132</span>
-                            <span className="text-green-500 font-semibold">↑ 25%</span>
-                        </div>
-                        <div className="mt-4">
-                            {/* Placeholder for chart */}
-                            <div className="h-16 w-full bg-green-50 rounded-xl flex items-end gap-1 px-2">
-                                {[30, 40, 60, 50, 80, 70].map((h, i) => (
-                                    <div key={i} className="bg-green-400 rounded w-3" style={{ height: `${h}%` }} />
-                                ))}
+                <div className="flex flex-col gap-6">
+                    <div className="flex flex-row gap-6">
+                        {/* Package Details */}
+                        <div className="col-span-1 bg-white rounded-2xl p-6 shadow flex flex-col w-[50%]">
+                            <div className="font-bold text-lg text-black mb-2">Package Details</div>
+                            <div className="flex gap-4 mb-2">
+                                <div className="text-xs text-gray-500">Electronics</div>
+                                <div className="text-xs text-green-500">In progress</div>
+                            </div>
+                            <div className="flex gap-4 mb-2">
+                                <div className="text-xs text-gray-400">28 lbs</div>
+                                <div className="text-xs text-gray-400">10.2 lbs</div>
+                                <div className="text-xs text-gray-400">8.5 lbs</div>
+                            </div>
+                            <div className="flex items-center gap-2 mt-2">
+                                <Image src="/avatar.png" alt="Receiver" width={32} height={32} className="rounded-full" />
+                                <div>
+                                    <div className="font-semibold text-black text-sm">Mike Miles</div>
+                                    <div className="text-xs text-gray-400">+1 800 456 2456</div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    {/* Average weight */}
-                    <div className="col-span-1 bg-white rounded-2xl p-6 shadow flex flex-col">
-                        <div className="flex items-center gap-2 mb-2">
-                            <span className="bg-green-100 text-green-700 p-2 rounded-full"><FiPackage /></span>
-                            <span className="font-bold text-lg text-black">Average weight</span>
-                        </div>
-                        <div className="flex items-end gap-2">
-                            <span className="text-3xl font-bold text-black">32 lbs</span>
-                            <span className="text-red-500 font-semibold">↓ 12%</span>
-                        </div>
-                        <div className="mt-4">
-                            <div className="h-16 w-full bg-green-50 rounded-xl flex items-end gap-1 px-2">
-                                {[60, 50, 40, 30, 20, 10].map((h, i) => (
-                                    <div key={i} className="bg-green-300 rounded w-3" style={{ height: `${h}%` }} />
-                                ))}
+                        {/* Order Info */}
+                        <div className="col-span-2 bg-white rounded-2xl p-6 shadow flex flex-col w-[50%]">
+                            <div className="flex items-center justify-between mb-2">
+                                <div className="font-bold text-lg text-black">Order Info</div>
+                                <button className="text-green-500 text-sm font-semibold hover:underline">View more</button>
                             </div>
-                        </div>
-                    </div>
-                    {/* Average distance */}
-                    <div className="col-span-1 bg-white rounded-2xl p-6 shadow flex flex-col">
-                        <div className="flex items-center gap-2 mb-2">
-                            <span className="bg-green-100 text-green-700 p-2 rounded-full"><FiMap /></span>
-                            <span className="font-bold text-lg text-black">Average distance</span>
-                        </div>
-                        <div className="flex items-end gap-2">
-                            <span className="text-3xl font-bold text-black">872 mi</span>
-                        </div>
-                        <div className="mt-4">
-                            <div className="h-16 w-full bg-green-50 rounded-xl flex items-end gap-1 px-2">
-                                {[20, 40, 60, 80, 60, 40].map((h, i) => (
-                                    <div key={i} className="bg-green-400 rounded w-3" style={{ height: `${h}%` }} />
-                                ))}
+                            <div className="flex gap-8 items-center">
+                                <div className="flex flex-col gap-1">
+                                    <div className="text-xs text-gray-400">NYC → PHI</div>
+                                    <div className="text-xs text-gray-400">#PTRG4523</div>
+                                    <div className="flex gap-2 text-xs text-gray-400 mt-1">
+                                        <span>Receipt 10:07AM</span>
+                                        <span>Preparation 13:18PM</span>
+                                        <span>Dispatch 14:33PM</span>
+                                        <span>Receiving 16:13PM</span>
+                                    </div>
+                                    <div className="w-full bg-green-100 rounded-full h-2 mt-2">
+                                        <div className="bg-green-500 h-2 rounded-full" style={{ width: "60%" }} />
+                                    </div>
+                                    <div className="text-xs text-gray-400 mt-1">60% Completed</div>
+                                </div>
                             </div>
                         </div>
                     </div>
                     {/* Map Overview */}
-                    <div className="col-span-1 row-span-2 bg-white rounded-2xl p-6 shadow flex flex-col">
-                        <div className="font-bold text-lg text-black mb-2">Map Overview</div>
-                        <div className="flex-1 flex flex-col items-center justify-center">
-                            {/* Placeholder for map */}
-                            {error && <p className="text-red-500">Error: {error}</p>}
-                            {coords ? (
-                                <Map lat={coords.lat} lng={coords.lng} />
-                            ) : (
-                                <p className="text-black">Loading coordinates...</p>
-                            )}
-                        </div>
-                    </div>
-                    {/* Package Details */}
-                    <div className="col-span-1 bg-white rounded-2xl p-6 shadow flex flex-col">
-                        <div className="font-bold text-lg text-black mb-2">Package Details</div>
-                        <div className="flex gap-4 mb-2">
-                            <div className="text-xs text-gray-500">Electronics</div>
-                            <div className="text-xs text-green-500">In progress</div>
-                        </div>
-                        <div className="flex gap-4 mb-2">
-                            <div className="text-xs text-gray-400">28 lbs</div>
-                            <div className="text-xs text-gray-400">10.2 lbs</div>
-                            <div className="text-xs text-gray-400">8.5 lbs</div>
-                        </div>
-                        <div className="flex items-center gap-2 mt-2">
-                            <Image src="/avatar.png" alt="Receiver" width={32} height={32} className="rounded-full" />
-                            <div>
-                                <div className="font-semibold text-black text-sm">Mike Miles</div>
-                                <div className="text-xs text-gray-400">+1 800 456 2456</div>
+                    {!isOrderModalOpen && (
+                        <div className="col-span-1 row-span-2 bg-white rounded-2xl p-6 shadow flex flex-col h-[calc(100vh-24rem)]">
+                            <div className="font-bold text-lg text-black mb-2">Map Overview</div>
+                            <div className="flex-1 w-full h-full">
+                                <Map locations={
+                                    [
+                                        {
+                                            id: '0',
+                                            label: 'Pick up',
+                                            coordinates: source
+                                        },
+                                        {
+                                            id: '1',
+                                            label: 'Drop off',
+                                            coordinates: destination
+                                        }
+                                    ]
+                                }
+                                />
                             </div>
                         </div>
-                    </div>
-                    {/* Order Info */}
-                    <div className="col-span-2 bg-white rounded-2xl p-6 shadow flex flex-col">
-                        <div className="flex items-center justify-between mb-2">
-                            <div className="font-bold text-lg text-black">Order Info</div>
-                            <button className="text-green-500 text-sm font-semibold hover:underline">View more</button>
-                        </div>
-                        <div className="flex gap-8 items-center">
-                            <div className="flex flex-col gap-1">
-                                <div className="text-xs text-gray-400">NYC → PHI</div>
-                                <div className="text-xs text-gray-400">#PTRG4523</div>
-                                <div className="flex gap-2 text-xs text-gray-400 mt-1">
-                                    <span>Receipt 10:07AM</span>
-                                    <span>Preparation 13:18PM</span>
-                                    <span>Dispatch 14:33PM</span>
-                                    <span>Receiving 16:13PM</span>
-                                </div>
-                                <div className="w-full bg-green-100 rounded-full h-2 mt-2">
-                                    <div className="bg-green-500 h-2 rounded-full" style={{ width: "60%" }} />
-                                </div>
-                                <div className="text-xs text-gray-400 mt-1">60% Completed</div>
-                            </div>
-                            <div className="flex-1 flex justify-end">
-                                <div className="w-24 h-24 bg-green-50 rounded-2xl flex items-center justify-center">
-                                    <Image src="/truck.png" alt="Truck" width={60} height={40} />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {/* Speed Statistic */}
-                    <div className="col-span-1 bg-white rounded-2xl p-6 shadow flex flex-col items-center justify-center">
-                        <div className="font-bold text-lg text-black mb-2">Speed Statistic</div>
-                        <div className="relative flex items-center justify-center">
-                            <svg width="90" height="90">
-                                <circle cx="45" cy="45" r="40" stroke="#e5e7eb" strokeWidth="8" fill="none" />
-                                <circle cx="45" cy="45" r="40" stroke={green} strokeWidth="8" fill="none" strokeDasharray={251.2} strokeDashoffset={251.2 * 0.35} strokeLinecap="round" />
-                            </svg>
-                            <span className="absolute text-2xl font-bold text-black">65</span>
-                        </div>
-                        <div className="text-xs text-gray-400 mt-2">miles/hour</div>
-                    </div>
-                    {/* Wheeled Robot Trailer */}
-                    <div className="col-span-1 bg-white rounded-2xl p-6 shadow flex flex-col">
-                        <div className="font-bold text-lg text-black mb-2">Wheeled Robot Trailer</div>
-                        <div className="text-xs text-gray-400 mb-2">WRT-67 Max</div>
-                        <div className="flex gap-2 text-xs text-gray-400 mb-2">
-                            <span>568 lbs</span>
-                            <span>24 in</span>
-                            <span>12 in</span>
-                        </div>
-                        <div className="flex items-center justify-center">
-                            <Image src="/robot.png" alt="Robot" width={80} height={50} />
-                        </div>
-                    </div>
+                    )}
                 </div>
             </main>
+            <OrderModal
+                isOpen={isOrderModalOpen}
+                onClose={() => setIsOrderModalOpen(false)}
+                onSubmit={handleCreateOrder}
+            />
         </div>
     );
 } 
