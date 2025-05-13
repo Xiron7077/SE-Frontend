@@ -5,9 +5,9 @@ import axios, { AxiosError } from "axios";
 const axiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_BACKEND_BASE_URL, // Set the base url, for maximum control, switch this to an environment variable
   timeout: 2000, // Timeout after 2 seconds
-  headers: {
-    Authorization: "Bearer " + "hello", // Preset the auth header if you're already logged in
-  },
+  // headers: {
+  //   Authorization: "Bearer " + "hello", // Preset the auth header if you're already logged in
+  // },
 });
 
 async function healthcheck() {
@@ -24,7 +24,7 @@ async function healthcheck() {
   }
 }
 
-healthcheck();
+// healthcheck();
 
 // You can also add a custom healthcheck similar verify function that allows you check if the user is authenticated
 
@@ -49,23 +49,26 @@ function handleAuthTokens({ id, accessToken, refreshToken }: AuthTokensPayload) 
 interface SignupParams {
   email: string;
   password: string;
-  role: string; // Role should be one of TUTOR, GUARDIAN, STUDENT
+  username: string;
 }
+
 type Pair = [boolean, string];
-async function signup({ email, password, role }: SignupParams): Promise<Pair> {
+async function signup({ email, password, username }: SignupParams): Promise<Pair> {
   try {
-    console.log(email, password, role);
+    console.log(email, password, username);
     const response = await axiosInstance.post("auth/signup", {
       email,
       password,
-      role,
+      username,
     });
+    console.log(response.data);
 
     const id = handleAuthTokens(response.data as AuthTokensPayload);
     sessionStorage.setItem("twoFA", "0");
 
     console.log("Signup successful");
     return [true, id];
+
   } catch (error) {
     console.log("Signup failed");
     if (error instanceof AxiosError) {
@@ -76,7 +79,7 @@ async function signup({ email, password, role }: SignupParams): Promise<Pair> {
       return [false, '0']; // do you need the message? what will you do with the message?
     }
 
-    return [false, '0']; // otherwise
+    return [false, '0']; // otherwis
   }
 }
 
@@ -97,6 +100,7 @@ async function login({ email, password }: LoginParams): Promise<Pair> {
 
     console.log("Login succesful");
     return [true, id];
+
   } catch (error) {
     console.log("Login failed");
     if (error instanceof AxiosError) {

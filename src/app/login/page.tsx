@@ -14,7 +14,13 @@ export default function LoginPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        await login({email, password});
+        const response = await login({email, password});
+        
+        if (response[0]) {
+            router.push("/dashboard");
+        } else {
+            alert("Login failed");
+        }
     };
 
     return (

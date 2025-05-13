@@ -31,10 +31,11 @@ export default function DashboardPage() {
     useEffect(() => {
         async function fetchCoords() {
             try {
-                const res = await fetch('/api/location');
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                const data: ApiResponse = await res.json();
-                setCoords({ lat: data.latitude, lng: data.longitude });
+                // const res = await fetch('http://192.168.8.130:3000/api/location');
+                // if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                // const data: ApiResponse = await res.json();
+                // setCoords({ lat: data.latitude, lng: data.longitude });
+                setCoords({ lat: 1, lng: 1 });
             } catch (err: any) {
                 console.error(err);
                 setError(err.message);

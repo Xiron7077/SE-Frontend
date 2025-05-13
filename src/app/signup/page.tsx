@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { motion } from "framer-motion";
-
+import { signup } from "@/components/lib/auth-helper";
 export default function SignUpPage() {
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
@@ -15,7 +15,26 @@ export default function SignUpPage() {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        if (password !== confirmPassword) {
+            alert("Passwords do not match");
+            return;
+        }
+        // Handle signup logic here
+        signup({ email, password, username })
+            .then(([success, id]) => {
+                if (success) {
+                    router.push("/login");
+                } else {
+                    alert("Signup failed");
+                }
+            })
+            .catch((error) => {
+                console.error("Error during signup:", error);
+                alert("An error occurred during signup");
+        });
+        
     };
+
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-white">
