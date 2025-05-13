@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://192.168.8.130:3000/drone';
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_DRONE_URL;
 
 // Helper function for making API requests
 async function makeRequest(method: 'get' | 'post', endpoint: string, data?: any) {
