@@ -6,7 +6,8 @@ import { FiBell, FiSearch, FiSettings, FiMessageSquare, FiMap, FiBox, FiPackage,
 import { motion } from "framer-motion";
 import dynamic from 'next/dynamic';
 import OrderModal from "@/components/ui/order-modal";
-import { fetchAvailableDrones, uploadMission, CommandDto } from "@/components/lib/drone-helper";
+import {fetchAvailableDrones, uploadMission, CommandDto, fetchAllDrones} from "@/components/lib/drone-helper";
+import {clearInterval} from "node:timers";
 
 const green = "#37A94C";
 
@@ -28,6 +29,31 @@ type ApiResponse = {
 
 export default function DashboardPage() {
     const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
+
+    const [locations, setLocations] = useState<{
+        id: string;
+        coordinates: [number, number];
+        label: string;
+    }[]>([]);
+
+    useEffect(() => {
+        const timeout = setInterval(() => {
+            fetchAllDrones().then((drone_data) => {
+                const data = drone_data.filter((data: any) => {
+                    return data['id'] === 1
+                })[0]
+                setLocations([
+                    { id: data["id"], coordinates: [Number(data["latestTelemetry"]["lat"]), Number(data["latestTelemetry"]["lon"])], label: "Drone 1" },
+                ])
+
+                console.log(locations)
+            });
+        }, 2000)
+
+        return () => {
+            clearInterval(timeout);
+        }
+    }, []);
 
     const source: [number, number] = [34.0693159, 72.6445735];
     const destination: [number, number] = [34.0710445, 72.6413709];
@@ -150,20 +176,10 @@ export default function DashboardPage() {
                         <div className="col-span-1 row-span-2 bg-white rounded-2xl p-6 shadow flex flex-col h-[calc(100vh-24rem)]">
                             <div className="font-bold text-lg text-black mb-2">Map Overview</div>
                             <div className="flex-1 w-full h-full">
-                                <Map locations={
-                                    [
-                                        {
-                                            id: '0',
-                                            label: 'Pick up',
-                                            coordinates: source
-                                        },
-                                        {
-                                            id: '1',
-                                            label: 'Drop off',
-                                            coordinates: destination
-                                        }
-                                    ]
+                                <Map locations={locations
                                 }
+                                     center={[34.0693159, 72.6445735]}
+
                                 />
                             </div>
                         </div>

@@ -1,11 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import {useEffect, useState} from "react";
 import { FiHome, FiBox } from "react-icons/fi";
 import { sendCommand } from "@/components/lib/drone-helper";
 import dynamic from 'next/dynamic';
 import { fetchAllDrones } from "@/components/lib/drone-helper";
+import {clearInterval} from "node:timers";
 
 const Map = dynamic(() => import('@/components/ui/map'), { ssr: false });
 
@@ -69,19 +70,25 @@ export default function AdminDashboardPage() {
         label: string;
     }[]>([]);
 
-    setTimeout(() => {
-        fetchAllDrones().then((drone_data) => {
-            console.log(drone_data);
-            setLocations([
-                { id: drone_data[0].id, coordinates: [Number(drone_data[0].latestTelemetry["lat"]), Number(drone_data[0].latestTelemetry["lon"])], label: "Drone 1" },
-                { id: drone_data[1].id, coordinates: [Number(drone_data[1].latestTelemetry["lat"]), Number(drone_data[1].latestTelemetry["lon"])], label: "Drone 2" },
-                { id: drone_data[2].id, coordinates: [Number(drone_data[2].latestTelemetry["lat"]), Number(drone_data[2].latestTelemetry["lon"])], label: "Drone 3" },
-                { id: drone_data[3].id, coordinates: [Number(drone_data[3].latestTelemetry["lat"]), Number(drone_data[3].latestTelemetry["lon"])], label: "Drone 4" },
-            ])
+    useEffect(() => {
+        const timeout = setInterval(() => {
+            fetchAllDrones().then((drone_data) => {
+                console.log(drone_data);
+                setLocations([
+                    { id: drone_data[0].id, coordinates: [Number(drone_data[0].latestTelemetry["lat"]), Number(drone_data[0].latestTelemetry["lon"])], label: "Drone 1" },
+                    { id: drone_data[1].id, coordinates: [Number(drone_data[1].latestTelemetry["lat"]), Number(drone_data[1].latestTelemetry["lon"])], label: "Drone 2" },
+                    { id: drone_data[2].id, coordinates: [Number(drone_data[2].latestTelemetry["lat"]), Number(drone_data[2].latestTelemetry["lon"])], label: "Drone 3" },
+                    { id: drone_data[3].id, coordinates: [Number(drone_data[3].latestTelemetry["lat"]), Number(drone_data[3].latestTelemetry["lon"])], label: "Drone 4" },
+                ])
 
-            console.log(locations)
-        });
-    }, 10000)
+                console.log(locations)
+            });
+        }, 2000)
+
+        return () => {
+            clearInterval(timeout);
+        }
+    }, []);
 
     const handleOrderAction = async (orderId: string, action: string) => {
         console.log(`Action ${action} performed on order ${orderId}`);
@@ -191,14 +198,14 @@ export default function AdminDashboardPage() {
                 {/* Action Menu Modal */}
                 {showActionMenu && selectedOrder && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                        <div className="bg-white rounded-2xl p-6 w-96">
+                        <div className="bg-gray-400 rounded-2xl p-6 w-96">
                             <h3 className="font-bold text-lg mb-4">Select Action for {selectedOrder}</h3>
                             <div className="flex flex-col gap-2">
                                 {orderActions.map((action) => (
                                     <button
                                         key={action.value}
                                         onClick={() => handleOrderAction(selectedOrder, action.value)}
-                                        className="px-4 py-2 text-left hover:bg-gray-100 rounded-lg transition-colors"
+                                        className="px-4 py-2 text-left hover:bg-gray-700 rounded-lg transition-colors"
                                     >
                                         {action.display}
                                     </button>
@@ -209,7 +216,7 @@ export default function AdminDashboardPage() {
                                     setShowActionMenu(false);
                                     setSelectedOrder(null);
                                 }}
-                                className="mt-4 w-full px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+                                className="mt-4 w-full px-4 py-2 bg-gray-700 rounded-lg hover:bg-gray-900 transition-colors"
                             >
                                 Cancel
                             </button>
