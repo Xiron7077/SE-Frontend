@@ -8,6 +8,12 @@ L.Icon.Default.mergeOptions({
   shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
 });
 
+const blah = new L.Icon({
+  iconUrl: '/drone-icon.png',
+  iconSize: [32, 32],
+  iconAnchor: [16, 16],
+})
+
 type Location = {
   id: string;
   coordinates: [number, number];
@@ -33,7 +39,7 @@ export default function Map({ locations, center }: MapProps) {
 
         {/* Render all location markers */}
         {locations.map((location) => (
-          <Marker key={location.id} position={location.coordinates}>
+          <Marker key={location.id} position={location.coordinates} icon={blah}>
             <Popup>{location.label}</Popup>
           </Marker>
         ))}
